@@ -11,7 +11,7 @@ import UIKit
 class TodoListViewController: UITableViewController {
     
     // MARK: - Properties
-    let itemArray = ["Item One", "Item Two", "Item Three"]
+    var itemArray = ["Item One", "Item Two", "Item Three"]
     
     
     
@@ -72,6 +72,40 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
-
+    
+    // MARK: - Add New Items
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        // local var to work in closures
+        var textField = UITextField()
+        
+        // show an alert with text field and append to array
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            // what happens when alert clicked
+            print("Success!")
+            // go to alertTextField closure where local var is set and then print to console
+            print(textField.text!)
+            
+            // add to array with force unwrap 'cos field will never be empty - it will be at least "" - and use self cos in closure
+            self.itemArray.append(textField.text!)
+            // won't display in table until...
+            self.tableView.reloadData()
+        }
+        
+        // this closure only gets triggered once text field has been added to alert
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            // this doesn't print, needs local var
+            //print(alertTextField.text)
+            textField = alertTextField
+            // above local var is now used in action closure
+        }
+        
+        alert.addAction(action)
+        present(alert, animated: true, completion: nil)
+    }
+    
 }
 
