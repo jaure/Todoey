@@ -12,6 +12,9 @@ class TodoListViewController: UITableViewController {
     
     // MARK: - Properties
     var itemArray = ["Item One", "Item Two", "Item Three"]
+    // persistent storage
+    let defaults = UserDefaults.standard
+    
     
     
     
@@ -19,6 +22,15 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        print("viewDidLoad")
+        
+        // get data from user defaults cast as array of strings
+        //itemArray = defaults.array(forKey: "TodoListArray") as! [String]
+        
+        // it's best to error check the above code and use optional rather than a forced downcast:
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            itemArray = items
+        }
     }
     
     
@@ -90,6 +102,11 @@ class TodoListViewController: UITableViewController {
             
             // add to array with force unwrap 'cos field will never be empty - it will be at least "" - and use self cos in closure
             self.itemArray.append(textField.text!)
+            // add to user defaults, a plist file - we need to use value-key.
+            // we need to load this to see added data.
+            // see AppDelegate didFinishLaunching...
+            // and viewDidLoad()
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
             // won't display in table until...
             self.tableView.reloadData()
         }
