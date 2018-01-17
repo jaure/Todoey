@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch. Happens before viewDidLoad()
-        print("didFinishLaunchingWithOptions")
+        //print("didFinishLaunchingWithOptions")
         
         // find user defaults path in Sim - just checking that data is being saved by doing manual check in Finder using the path printed in the console
         //print(NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).last! as String)
