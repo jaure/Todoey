@@ -11,13 +11,14 @@ import UIKit
 class TodoListViewController: UITableViewController {
     
     // MARK: - Properties
-    //var itemArray = ["Item One", "Item Two", "Item Three"]
     
     // create array from data model
     var itemArray = [Item]()
     
     // persistent storage
-    let defaults = UserDefaults.standard
+    // Get file path to document directory in user's home directory using FileManager singleton
+    // Grab first item as this is an array and add a plist file - this only creates the path
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     
     
@@ -26,33 +27,11 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        //print("viewDidLoad")
         
-        // get data from user defaults cast as array of strings
-        //itemArray = defaults.array(forKey: "TodoListArray") as! [String]
+        print(dataFilePath!)
         
-        // it's best to error check the above code and use optional rather than a forced downcast:
-        /*if let items = defaults.array(forKey: "TodoListArray") as? [String] {
-            itemArray = items
-        }*/
-        
-        // create newItem objects and append to array
-        let newItem1 = Item()
-        newItem1.title = "First Item"
-        itemArray.append(newItem1)
-        
-        let newItem2 = Item()
-        newItem2.title = "Second Item"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "Third Item"
-        itemArray.append(newItem3)
-        
-        // user defaults
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
+        // load our data
+        loadItems()
     }
     
     
@@ -103,40 +82,11 @@ class TodoListViewController: UITableViewController {
     
     // MARK: - Tableview Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // print row number to console
-        //print(indexPath.row)
         
-        // fix checkmark dequeueing issue
-        /*if itemArray[indexPath.row].done == false {
-            itemArray[indexPath.row].done = true
-        } else {
-            itemArray[indexPath.row].done = false
-        }*/
-        // More compact code than above - sets the done property as it stands to its opposite
+        // Sets the done property as it stands to its opposite
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        // print item name to console
-        //let menuItem = itemArray[indexPath.row]
-        //print(menuItem)
-        // Above two lines are same as:
-        //print(itemArray[indexPath.row])
-        
-        // Add checkmark using accessory
-        //tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        
-        /* Below not req'd after adding cell display code to cellForRowAt above - see accessory code
-        // Check to see if current cell has checkmark
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            // change to none
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        } else {
-            // add a checkmark
-            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        }
-        */
-        
-        // get the checkmarks to display properly when row tapped - it forces the table view to call its datasource methods again and cellForRow will now work
-        tableView.reloadData()
+        saveItems()
         
         // don't leave selected row as gray background.
         // deselect and animate leaving white background.
@@ -162,16 +112,10 @@ class TodoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             
-            // add to array with force unwrap 'cos field will never be empty - it will be at least "" - and use self cos in closure
-            //self.itemArray.append(textField.text!)
+            // add to array and use self cos in closure
             self.itemArray.append(newItem)
-            // add to user defaults, a plist file - we need to use value-key.
-            // we need to load this to see added data.
-            // see AppDelegate didFinishLaunching...
-            // and viewDidLoad()
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            // won't display in table until...
-            self.tableView.reloadData()
+            
+            self.saveItems()
         }
         
         // this closure only gets triggered once text field has been added to alert
@@ -185,6 +129,41 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    
+    
+    
+    // MARK: - Model Manipulation Methods
+    func saveItems() {
+        // add a plist file with our data
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            // write data to file path
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding item array, \(error)")
+        }
+        // won't display in table until...
+        tableView.reloadData()
+    }
+    
+    
+    
+    
+    func loadItems() {
+        // get our data, method can throw an error so use try which turns constant into optional
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            // create new object to decode data
+            let decoder = PropertyListDecoder()
+            do {
+            itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding item array, \(error)")
+            }
+        }
     }
     
 }
