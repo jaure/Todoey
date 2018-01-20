@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListViewController: UITableViewController {
     
@@ -16,9 +17,8 @@ class TodoListViewController: UITableViewController {
     var itemArray = [Item]()
     
     // persistent storage
-    // Get file path to document directory in user's home directory using FileManager singleton
-    // Grab first item as this is an array and add a plist file - this only creates the path
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    // for Core Data, get context from AppDelegate
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     
     
@@ -27,10 +27,9 @@ class TodoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        //print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        print(dataFilePath!)
-        
-        // load our data
+        // load our data - this uses default
         loadItems()
     }
     
@@ -50,28 +49,10 @@ class TodoListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         // display cell with data
-        //cell.textLabel?.text = itemArray[indexPath.row]
-        //cell.textLabel?.text = itemArray[indexPath.row].title
-        // replaces above code
         let item = itemArray[indexPath.row]
         cell.textLabel?.text = item.title
-        /*
-        if itemArray[indexPath.row].done == true {
-            cell.accessoryType = .checkmark
-        } else {
-            cell.accessoryType = .none
-        }*/
-        // replace above code:
-        /*if item.done == true {
-            cell.accessoryType = .checkmark
-        } else {
-            cell.accessoryType = .none
-        }*/
         
-        // ternary operator replaces above code
-        // value = condition ? valueIfTrue : valueIfFalse
-        //cell.accessoryType = item.done == true ? .checkmark : .none
-        // further compacted:
+        // ternary operator
         cell.accessoryType = item.done ? .checkmark : .none
         // above sets the accessoryType - if true set checkmark, if false set to none
         
@@ -82,6 +63,10 @@ class TodoListViewController: UITableViewController {
     
     // MARK: - Tableview Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        // when deleting, use context first before removing from array, eg:
+        //context.delete(itemArray[indexPath.row])
+        //itemArray.remove(at: indexPath.row)
         
         // Sets the done property as it stands to its opposite
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
@@ -109,8 +94,10 @@ class TodoListViewController: UITableViewController {
             // go to alertTextField closure where local var is set and then print to console
             print(textField.text!)
             
-            let newItem = Item()
+            // create new item of type NSManagedObject with 2 x attributes
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             
             // add to array and use self cos in closure
             self.itemArray.append(newItem)
@@ -121,10 +108,9 @@ class TodoListViewController: UITableViewController {
         // this closure only gets triggered once text field has been added to alert
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create new item"
-            // this doesn't print, needs local var
-            //print(alertTextField.text)
+
             textField = alertTextField
-            // above local var is now used in action closure
+            // above local var is used in action closure
         }
         
         alert.addAction(action)
@@ -136,15 +122,12 @@ class TodoListViewController: UITableViewController {
     
     // MARK: - Model Manipulation Methods
     func saveItems() {
-        // add a plist file with our data
-        let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(itemArray)
-            // write data to file path
-            try data.write(to: dataFilePath!)
+            // save temp area (context) to persistent store
+            try context.save()
         } catch {
-            print("Error encoding item array, \(error)")
+            print("Error saving context \(error)")
         }
         // won't display in table until...
         tableView.reloadData()
@@ -153,18 +136,86 @@ class TodoListViewController: UITableViewController {
     
     
     
-    func loadItems() {
-        // get our data, method can throw an error so use try which turns constant into optional
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            // create new object to decode data
-            let decoder = PropertyListDecoder()
-            do {
-            itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding item array, \(error)")
-            }
+    //func loadItems(request: NSFetchRequest<Item>) {
+    // add a default value with none specified for Item
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+        // create request, specifying data type and entity (Item)
+        //let request: NSFetchRequest<Item> = Item.fetchRequest()
+        // we have to go through the context to get our data - this can throw an error so use try inside a do catch block
+        do {
+            // save data in our array
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
         }
+        
+        tableView.reloadData()
     }
     
+    
+    
+    
+    
+}
+
+// MARK: - Extension
+extension TodoListViewController: UISearchBarDelegate {
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        // set up Core Data request
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        
+        print(searchBar.text!)
+        
+        // query object using Core Data
+        // title contains a value from searchBar text, ignoring case and diacritics(accents)
+        //let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        // add query to request
+        //request.predicate = predicate
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        // sort returned data
+        //let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        
+        // add sort to request, single item in array
+        //request.sortDescriptors = [sortDescriptor]
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        // run request and fetch results (see loadItems)
+        // we have to go through the context to get our data - this can throw an error so use try inside a do catch block
+        //do {
+            // save data in our array
+            //itemArray = try context.fetch(request)
+        //} catch {
+           // print("Error fetching data from context \(error)")
+        //
+        
+        loadItems(with: request)
+        
+        // update and display table
+        //tableView.reloadData()
+    }
+    
+    
+    // when user clears search bar:
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            // text has changed, but now empty
+            // fetch all items
+            loadItems()
+            
+            // we want UI to update even if background events are happening
+            // get main thread so search bar is on main queue in foreground
+            DispatchQueue.main.async {
+                // tell search bar that it is no longer the active object, dismiss onscreen keyboard
+                searchBar.resignFirstResponder()
+            }
+            
+            
+        }
+    }
 }
 
