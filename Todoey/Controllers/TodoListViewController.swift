@@ -16,6 +16,15 @@ class TodoListViewController: UITableViewController {
     // create array from data model
     var itemArray = [Item]()
     
+    // for didSelect table row in CategoryVC
+    // we will have value at this stage so optional won't be nil - see also addButtonPressed
+    var selectedCategory: Category? {
+        didSet {
+            // gets executed as soon as selectedCategory has a value (delete from viewDidLoad)
+            loadItems()
+        }
+    }
+    
     // persistent storage
     // for Core Data, get context from AppDelegate
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -29,8 +38,8 @@ class TodoListViewController: UITableViewController {
         // Do any additional setup after loading the view, typically from a nib.
         //print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        // load our data - this uses default
-        loadItems()
+        // load our data - this uses default - see Properties
+        //loadItems()
     }
     
     
@@ -98,6 +107,8 @@ class TodoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
+            // for new Category
+            newItem.parentCategory = self.selectedCategory
             
             // add to array and use self cos in closure
             self.itemArray.append(newItem)
@@ -138,7 +149,24 @@ class TodoListViewController: UITableViewController {
     
     //func loadItems(request: NSFetchRequest<Item>) {
     // add a default value with none specified for Item
-    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
+    // plus nil default for predicate
+    func loadItems(with request: NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil) {
+        
+        // for Category
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        //let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, predicate])
+        
+        //request.predicate = compoundPredicate
+        
+        // optional binding
+        if let additionalPredicate = predicate {
+            // not nil
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
         // create request, specifying data type and entity (Item)
         //let request: NSFetchRequest<Item> = Item.fetchRequest()
         // we have to go through the context to get our data - this can throw an error so use try inside a do catch block
@@ -165,7 +193,10 @@ extension TodoListViewController: UISearchBarDelegate {
         // set up Core Data request
         let request: NSFetchRequest<Item> = Item.fetchRequest()
         
-        print(searchBar.text!)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        
+        //print(searchBar.text!)
         
         // query object using Core Data
         // title contains a value from searchBar text, ignoring case and diacritics(accents)
@@ -174,7 +205,7 @@ extension TodoListViewController: UISearchBarDelegate {
         // add query to request
         //request.predicate = predicate
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        //request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         // sort returned data
         //let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
@@ -193,7 +224,7 @@ extension TodoListViewController: UISearchBarDelegate {
            // print("Error fetching data from context \(error)")
         //
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
         // update and display table
         //tableView.reloadData()
