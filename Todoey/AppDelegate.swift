@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,6 +18,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
+        // where data is stored
+        print(Realm.Configuration.defaultConfiguration.fileURL!)
+        
+        // create new Data class object and set properties
+        let data = Data()
+        data.name = "John"
+        data.age = 62
+        
+        // create new Realm object (can throw, use try)
+        // and put in do-catch block
+        do {
+            let realm = try Realm()
+            // commit to storage (can throw, use try)
+            try realm.write {
+                realm.add(data)
+            }
+        } catch {
+            print("Error initalising new realm, \(error)")
+        }
         
         return true
     }
