@@ -7,19 +7,17 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
     // MARK: - Properties
     
-    // create array from data model, init as empty
-    var categoryArray = [Category]()
+    // init a new Realm
+    let realm = try! Realm()
     
-    
-    // persistent storage
-    // for Core Data, get context from AppDelegate
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    // create array using auto updating data type from Realm
+    var categories: Results<Category>!
     
     
     
@@ -29,7 +27,7 @@ class CategoryViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        loadItems()
+        loadCategories()
     }
 
     
@@ -38,7 +36,7 @@ class CategoryViewController: UITableViewController {
     // MARK: - TableView Datasource methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return categoryArray.count
+        return categories.count
     }
     
     
@@ -51,7 +49,7 @@ class CategoryViewController: UITableViewController {
         // display cell with data
         //let category = categoryArray[indexPath.row]
         //cell.textLabel?.text = category.name
-        cell.textLabel?.text = categoryArray[indexPath.row].name
+        cell.textLabel?.text = categories[indexPath.row].name
         
         return cell
     }
@@ -70,18 +68,20 @@ class CategoryViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoryArray[indexPath.row]
+            destinationVC.selectedCategory = categories[indexPath.row]
         }
     }
     
     
     // MARK: - Data Manipulation Methods
     
-    func saveItems() {
+    func save(category: Category) {
         
         do {
-            // save temp area (context) to persistent store
-            try context.save()
+            // save to persistent store
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
             print("Error saving context \(error)")
         }
@@ -89,16 +89,10 @@ class CategoryViewController: UITableViewController {
         tableView.reloadData()
     }
     
-    // add a default value with none specified for Category
-    func loadItems(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-        // we have to go through the context to get our data - this can throw an error so use try inside a do catch block
-        do {
-            // save data in our array
-            categoryArray = try context.fetch(request)
-        } catch {
-            print("Error fetching data from context \(error)")
-        }
+    func loadCategories() {
         
+        categories = realm.objects(Category.self)
+
         tableView.reloadData()
     }
     
@@ -120,14 +114,13 @@ class CategoryViewController: UITableViewController {
             // go to alertTextField closure where local var is set and then print to console
             print(textField.text!)
             
-            // create new category of type NSManagedObject with 1 x attribute
-            let newCategory = Category(context: self.context)
+            // create new category with 1 x attribute
+            let newCategory = Category()
             newCategory.name = textField.text!
             
-            // add to array and use self cos in closure
-            self.categoryArray.append(newCategory)
+            // auto updating Realm container means we no longer need to append - see Properties
             
-            self.saveItems()
+            self.save(category: newCategory)
         }
         
         // this closure only gets triggered once text field has been added to alert
