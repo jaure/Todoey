@@ -37,11 +37,7 @@ class TodoListViewController: UITableViewController {
     // MARK: - View
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        //print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
         
-        // load our data - this uses default - see Properties
-        //loadItems()
     }
     
     
@@ -76,19 +72,21 @@ class TodoListViewController: UITableViewController {
     }
     
     
+    // needed for swipe to delete
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         
         return true
     }
     
     
+    // actual deletion
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         
         if editingStyle == .delete {
             if let item = todoItems?[indexPath.row] {
                 // can throw, use do-catch
                 do {
-                    // if not nil, toggle the check
+                    // if not nil, delete selection
                     try realm.write {
                         // delete
                         realm.delete(item)
