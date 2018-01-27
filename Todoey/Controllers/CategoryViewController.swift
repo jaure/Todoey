@@ -17,7 +17,10 @@ class CategoryViewController: UITableViewController {
     let realm = try! Realm()
     
     // create array using auto updating data type from Realm
-    var categories: Results<Category>!
+    // force unwrapping here:
+    //var categories: Results<Category>!
+    // best to make optional and change code elsewhere
+    var categories: Results<Category>?
     
     
     
@@ -36,7 +39,9 @@ class CategoryViewController: UITableViewController {
     // MARK: - TableView Datasource methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return categories.count
+        // categories defined as optional in Properties so if nil, return 1 using 'nil coalescing operator' (??)
+        // see cellForRowAt which sets a default value if categories is nil
+        return categories?.count ?? 1
     }
     
     
@@ -49,7 +54,8 @@ class CategoryViewController: UITableViewController {
         // display cell with data
         //let category = categoryArray[indexPath.row]
         //cell.textLabel?.text = category.name
-        cell.textLabel?.text = categories[indexPath.row].name
+        // Again, test for nil and, if so, set to string contents
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories added yet"
         
         return cell
     }
@@ -68,7 +74,8 @@ class CategoryViewController: UITableViewController {
         let destinationVC = segue.destination as! TodoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categories[indexPath.row]
+            // set if categories not nil as defined as optional in Properties
+            destinationVC.selectedCategory = categories?[indexPath.row]
         }
     }
     
@@ -91,7 +98,7 @@ class CategoryViewController: UITableViewController {
     
     func loadCategories() {
         
-        categories = realm.objects(Category.self)
+        categories = realm.objects(Category.self).sorted(byKeyPath: "name", ascending: true)
 
         tableView.reloadData()
     }
