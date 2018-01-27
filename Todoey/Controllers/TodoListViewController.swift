@@ -76,6 +76,33 @@ class TodoListViewController: UITableViewController {
     }
     
     
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        
+        return true
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if editingStyle == .delete {
+            if let item = todoItems?[indexPath.row] {
+                // can throw, use do-catch
+                do {
+                    // if not nil, toggle the check
+                    try realm.write {
+                        // delete
+                        realm.delete(item)
+                    }
+                } catch {
+                    print("Error saving done status, \(error)")
+                }
+            }
+        }
+        
+        tableView.reloadData()
+    }
+    
+    
     
     // MARK: - Tableview Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -101,6 +128,9 @@ class TodoListViewController: UITableViewController {
         // deselect and animate leaving white background.
         tableView.deselectRow(at: indexPath, animated: true)
     }
+    
+    
+    
 
     
     // MARK: - Add New Items
