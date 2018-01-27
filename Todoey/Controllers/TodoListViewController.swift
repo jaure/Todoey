@@ -80,14 +80,20 @@ class TodoListViewController: UITableViewController {
     // MARK: - Tableview Delegate
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        // when deleting, use context first before removing from array, eg:
-        //context.delete(itemArray[indexPath.row])
-        //itemArray.remove(at: indexPath.row)
+        if let item = todoItems?[indexPath.row] {
+            // can throw, use do-catch
+            do {
+            // if not nil, toggle the check
+            try realm.write {
+                item.done = !item.done
+                }
+            } catch {
+                print("Error saving done status, \(error)")
+            }
+        }
         
-        // Sets the done property as it stands to its opposite
-//        todoItems[indexPath.row].done = !todoItems[indexPath.row].done
-//
-//        saveItems()
+        // update to reflect the check status
+        tableView.reloadData()
         
         // don't leave selected row as gray background.
         // deselect and animate leaving white background.
