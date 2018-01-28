@@ -92,7 +92,7 @@ class TodoListViewController: UITableViewController {
                         realm.delete(item)
                     }
                 } catch {
-                    print("Error saving done status, \(error)")
+                    print("Error deleting item, \(error)")
                 }
             }
         }
