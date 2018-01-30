@@ -33,9 +33,6 @@ class CategoryViewController: SwipeTableViewController {
         super.viewDidLoad()
 
         loadCategories()
-        
-        // make trash icon show up ok when swiping row from right.
-        tableView.rowHeight = 80.0
     }
 
     
@@ -57,7 +54,6 @@ class CategoryViewController: SwipeTableViewController {
         // Get cell from super class
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        // Test for nil and, if so, set to string contents
         cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories added yet"
         
         return cell
@@ -93,7 +89,7 @@ class CategoryViewController: SwipeTableViewController {
                 realm.add(category)
             }
         } catch {
-            print("Error saving context \(error)")
+            print("Error saving categories \(error)")
         }
         // won't display in table until...
         tableView.reloadData()
@@ -111,6 +107,8 @@ class CategoryViewController: SwipeTableViewController {
     // MARK: - Delete Date from Swipe
     // override our custom super class method
     override func updateModel(at indexPath: IndexPath) {
+        // call superclass - just to demo that updateModel gets called and prints to console - without this, method is not called
+        super.updateModel(at: indexPath)
         
         if let categoryToDelete = self.categories?[indexPath.row] {
             // can throw, use do-catch

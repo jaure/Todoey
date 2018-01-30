@@ -16,7 +16,7 @@ class TodoListViewController: UITableViewController {
     
     // create array from data model
     //var itemArray = [Item]()
-    // now a Results container rather 
+    // now a Results container rather
     var todoItems: Results<Item>?
     
     // create new Realm instance
@@ -108,11 +108,11 @@ class TodoListViewController: UITableViewController {
         if let item = todoItems?[indexPath.row] {
             // can throw, use do-catch
             do {
-            // if not nil, toggle the check
-            try realm.write {
-                // delete
-                //realm.delete(item)
-                item.done = !item.done
+                // if not nil, toggle the check
+                try realm.write {
+                    // delete
+                    //realm.delete(item)
+                    item.done = !item.done
                 }
             } catch {
                 print("Error saving done status, \(error)")
@@ -129,7 +129,7 @@ class TodoListViewController: UITableViewController {
     
     
     
-
+    
     
     // MARK: - Add New Items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -147,14 +147,14 @@ class TodoListViewController: UITableViewController {
             print(textField.text!)
             
             // create new item of type NSManagedObject with 2 x attributes
-//            let newItem = Item(context: self.context)
-//            newItem.title = textField.text!
-//            newItem.done = false
-//            // for new Category
-//            newItem.parentCategory = self.selectedCategory
-//
-//            // add to array and use self cos in closure
-//            self.itemArray.append(newItem)
+            //            let newItem = Item(context: self.context)
+            //            newItem.title = textField.text!
+            //            newItem.done = false
+            //            // for new Category
+            //            newItem.parentCategory = self.selectedCategory
+            //
+            //            // add to array and use self cos in closure
+            //            self.itemArray.append(newItem)
             
             //self.saveItems()
             
@@ -163,10 +163,10 @@ class TodoListViewController: UITableViewController {
                 // save, can throw so use do-catch and use self cos in closure
                 do {
                     try self.realm.write {
-                    // init new Item
-                    let newItem = Item()
-                    newItem.title = textField.text!
-                    currentCategory.items.append(newItem)
+                        // init new Item
+                        let newItem = Item()
+                        newItem.title = textField.text!
+                        currentCategory.items.append(newItem)
                     }
                 } catch {
                     print("Error saving new items, \(error)")
@@ -181,7 +181,7 @@ class TodoListViewController: UITableViewController {
         // this closure only gets triggered once text field has been added to alert
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create new item"
-
+            
             textField = alertTextField
             // above local var is used in action closure
         }
@@ -194,17 +194,17 @@ class TodoListViewController: UITableViewController {
     
     
     // MARK: - Model Manipulation Methods
-//    func saveItems() {
-//
-//        do {
-//            // save temp area (context) to persistent store
-//            try context.save()
-//        } catch {
-//            print("Error saving context \(error)")
-//        }
-//        // won't display in table until...
-//        tableView.reloadData()
-//    }
+    //    func saveItems() {
+    //
+    //        do {
+    //            // save temp area (context) to persistent store
+    //            try context.save()
+    //        } catch {
+    //            print("Error saving context \(error)")
+    //        }
+    //        // won't display in table until...
+    //        tableView.reloadData()
+    //    }
     
     
     
@@ -224,29 +224,29 @@ class TodoListViewController: UITableViewController {
 
 // MARK: - Extension
 extension TodoListViewController: UISearchBarDelegate {
-
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         // filter according to text entered using title, ignoring case and diacritics, then sort
         todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
         tableView.reloadData()
     }
-
-
+    
+    
     // when user clears search bar:
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
             // text has changed, but now empty
             // fetch all items
             loadItems()
-
+            
             // we want UI to update even if background events are happening
             // get main thread so search bar is on main queue in foreground
             DispatchQueue.main.async {
                 // tell search bar that it is no longer the active object, dismiss onscreen keyboard
                 searchBar.resignFirstResponder()
             }
-
-
+            
+            
         }
     }
 }

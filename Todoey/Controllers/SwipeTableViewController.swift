@@ -14,6 +14,8 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // make trash icon show up ok when swiping row from right.
+        tableView.rowHeight = 80.0
     }
     
     
@@ -61,7 +63,7 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
     // Update data model, called from editActionsForRowAt
     func updateModel(at indexPath: IndexPath) {
         
-        
+        print("Item deleted from superclass")
     }
 
 }
