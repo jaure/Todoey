@@ -10,7 +10,7 @@ import UIKit
 import RealmSwift
 
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
     
     // MARK: - Properties
     
@@ -52,53 +52,20 @@ class TodoListViewController: UITableViewController {
     
     // This method gets called for every cell in the table view, dependent on number of rows
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Only load the visible cells, cells get reused.
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        // Get cell from super class
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         // display cell with data
         // optional chaining, if not nil then grab the items at indexPath.row
-        if let item = todoItems?[indexPath.row] {
-            cell.textLabel?.text = item.title
-            
-            // ternary operator
-            cell.accessoryType = item.done ? .checkmark : .none
-            // above sets the accessoryType - if true set checkmark, if false set to none
-        } else {
-            // if nil
-            cell.textLabel?.text = "No Items Added"
-        }
+        cell.textLabel?.text = todoItems?[indexPath.row].title ?? "No Items added yet"
+        cell.accessoryType = (todoItems?[indexPath.row].done)! ? .checkmark : .none
         
         return cell
     }
     
     
-    // needed for swipe to delete
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        
-        return true
-    }
     
     
-    // actual deletion
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        
-        if editingStyle == .delete {
-            if let item = todoItems?[indexPath.row] {
-                // can throw, use do-catch
-                do {
-                    // if not nil, delete selection
-                    try realm.write {
-                        // delete
-                        realm.delete(item)
-                    }
-                } catch {
-                    print("Error deleting item, \(error)")
-                }
-            }
-        }
-        
-        tableView.reloadData()
-    }
     
     
     
@@ -146,17 +113,6 @@ class TodoListViewController: UITableViewController {
             // go to alertTextField closure where local var is set and then print to console
             print(textField.text!)
             
-            // create new item of type NSManagedObject with 2 x attributes
-            //            let newItem = Item(context: self.context)
-            //            newItem.title = textField.text!
-            //            newItem.done = false
-            //            // for new Category
-            //            newItem.parentCategory = self.selectedCategory
-            //
-            //            // add to array and use self cos in closure
-            //            self.itemArray.append(newItem)
-            
-            //self.saveItems()
             
             if let currentCategory = self.selectedCategory {
                 // if not nil
@@ -188,6 +144,25 @@ class TodoListViewController: UITableViewController {
         
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    
+    
+    // MARK: - Delete Data from Swipe
+    // override our custom super class method
+    override func updateModel(at indexPath: IndexPath) {
+        super.updateModel(at: indexPath)
+        
+        if let itemToDelete = self.todoItems?[indexPath.row] {
+            do {
+                try self.realm.write {
+                    print("Item deleted")
+                    self.realm.delete(itemToDelete)
+                }
+            } catch {
+                print("Error deleting item, \(error)")
+            }
+        }
     }
     
     
