@@ -31,6 +31,8 @@ class TodoListViewController: SwipeTableViewController {
         }
     }
     
+    var textField = UITextField()
+    
     
     
     
@@ -102,7 +104,7 @@ class TodoListViewController: SwipeTableViewController {
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         // local var to work in closures
-        var textField = UITextField()
+        //var textField = UITextField()
         
         // show an alert with text field and append to array
         let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
@@ -111,26 +113,31 @@ class TodoListViewController: SwipeTableViewController {
             // what happens when alert clicked
             print("Success!")
             // go to alertTextField closure where local var is set and then print to console
-            print(textField.text!)
+            print(self.textField.text!)
             
+            
+//            if let currentCategory = self.selectedCategory {
+//                // if not nil
+//                // save, can throw so use do-catch and use self cos in closure
+//                do {
+//                    try self.realm.write {
+//                        // init new Item
+//                        let newItem = Item()
+//                        newItem.title = textField.text!
+//                        currentCategory.items.append(newItem)
+//                    }
+//                } catch {
+//                    print("Error saving new items, \(error)")
+//                }
+//            }
+//
+//            // update table view with new item
+//            self.tableView.reloadData()
             
             if let currentCategory = self.selectedCategory {
-                // if not nil
-                // save, can throw so use do-catch and use self cos in closure
-                do {
-                    try self.realm.write {
-                        // init new Item
-                        let newItem = Item()
-                        newItem.title = textField.text!
-                        currentCategory.items.append(newItem)
-                    }
-                } catch {
-                    print("Error saving new items, \(error)")
-                }
+                
+                self.save(currentCategory: currentCategory)
             }
-            
-            // update table view with new item
-            self.tableView.reloadData()
             
         }
         
@@ -138,7 +145,7 @@ class TodoListViewController: SwipeTableViewController {
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create new item"
             
-            textField = alertTextField
+            self.textField = alertTextField
             // above local var is used in action closure
         }
         
@@ -169,17 +176,22 @@ class TodoListViewController: SwipeTableViewController {
     
     
     // MARK: - Model Manipulation Methods
-    //    func saveItems() {
-    //
-    //        do {
-    //            // save temp area (context) to persistent store
-    //            try context.save()
-    //        } catch {
-    //            print("Error saving context \(error)")
-    //        }
-    //        // won't display in table until...
-    //        tableView.reloadData()
-    //    }
+    
+    func save(currentCategory: Category) {
+        
+        do {
+            try self.realm.write {
+                // init new Item
+                let newItem = Item()
+                newItem.title = textField.text!
+                currentCategory.items.append(newItem)
+            }
+        } catch {
+            print("Error saving new items, \(error)")
+        }
+        // update table view with new item
+        self.tableView.reloadData()
+    }
     
     
     
@@ -190,11 +202,7 @@ class TodoListViewController: SwipeTableViewController {
         
         tableView.reloadData()
     }
-    
-    
-    
-    
-    
+
 }
 
 // MARK: - Extension
