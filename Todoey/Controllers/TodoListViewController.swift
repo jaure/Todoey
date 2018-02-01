@@ -103,10 +103,6 @@ class TodoListViewController: SwipeTableViewController {
         // Get cell from super class
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
-        // display cell with data
-        // optional chaining, if not nil then grab the items at indexPath.row
-//        cell.textLabel?.text = todoItems?[indexPath.row].title ?? "No Items added yet"
-//        cell.accessoryType = (todoItems?[indexPath.row].done)! ? .checkmark : .none
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
@@ -120,6 +116,8 @@ class TodoListViewController: SwipeTableViewController {
                 cell.backgroundColor = colour
                 // set text to black or white depending on background colour of cell using Chameleon
                 cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true)
+                // set checkmark to contrasting b/w
+                cell.tintColor = ContrastColorOf(colour, returnFlat: true)
             }
             
             cell.accessoryType = item.done ? .checkmark : .none
