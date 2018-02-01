@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 
 class TodoListViewController: SwipeTableViewController {
@@ -39,7 +40,8 @@ class TodoListViewController: SwipeTableViewController {
     // MARK: - View
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        // no dividing lines between cells
+        tableView.separatorStyle = .none
     }
     
     
@@ -59,8 +61,27 @@ class TodoListViewController: SwipeTableViewController {
         
         // display cell with data
         // optional chaining, if not nil then grab the items at indexPath.row
-        cell.textLabel?.text = todoItems?[indexPath.row].title ?? "No Items added yet"
-        cell.accessoryType = (todoItems?[indexPath.row].done)! ? .checkmark : .none
+//        cell.textLabel?.text = todoItems?[indexPath.row].title ?? "No Items added yet"
+//        cell.accessoryType = (todoItems?[indexPath.row].done)! ? .checkmark : .none
+        
+        if let item = todoItems?[indexPath.row] {
+            cell.textLabel?.text = item.title
+            // Chameleon
+            // optional binding todoItems?, calc colour tint for each row, cast as CGFloat (for both whole numbers) - get the count if todoItems is not nil and divide the row number by the count to calc the percentage tint - todoItems will always have a value by this point so we can force unwrap with ! rather than using ?
+            //if let colour = FlatSkyBlue().darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count))
+            if let colour = UIColor(hexString: selectedCategory!.colour)?.darken(byPercentage: (CGFloat(indexPath.row) / CGFloat(todoItems!.count)) / 7)
+                // do a further division to get a lighter overall tint
+                // above uses saved colour from Category, force unwraps(!) 'cos it can't be nil, then optionally chains(?) in case there is no UIColor.
+            {
+                cell.backgroundColor = colour
+                // set text to black or white depending on background colour of cell using Chameleon
+                cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true)
+            }
+            
+            cell.accessoryType = item.done ? .checkmark : .none
+        } else {
+            cell.textLabel?.text = "No Items Added"
+        }
         
         return cell
     }
@@ -115,24 +136,6 @@ class TodoListViewController: SwipeTableViewController {
             // go to alertTextField closure where local var is set and then print to console
             print(self.textField.text!)
             
-            
-//            if let currentCategory = self.selectedCategory {
-//                // if not nil
-//                // save, can throw so use do-catch and use self cos in closure
-//                do {
-//                    try self.realm.write {
-//                        // init new Item
-//                        let newItem = Item()
-//                        newItem.title = textField.text!
-//                        currentCategory.items.append(newItem)
-//                    }
-//                } catch {
-//                    print("Error saving new items, \(error)")
-//                }
-//            }
-//
-//            // update table view with new item
-//            self.tableView.reloadData()
             
             if let currentCategory = self.selectedCategory {
                 

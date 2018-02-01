@@ -12,6 +12,8 @@ import RealmSwift
 // class for Realm Object, needs Obj-C and dynamic so Realm can monitor for changes to properties
 class Category: Object {
     @objc dynamic var name: String = ""
+    // for Chameleon, save initial random color
+    @objc dynamic var colour: String = ""
     // forward relationship using Realm List array with data type, init as empty
     let items = List<Item>()
 }

@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 
 // inherits from our custom super class
@@ -33,6 +34,9 @@ class CategoryViewController: SwipeTableViewController {
         super.viewDidLoad()
 
         loadCategories()
+        
+        // no dividing lines between cells
+        tableView.separatorStyle = .none
     }
 
     
@@ -55,6 +59,13 @@ class CategoryViewController: SwipeTableViewController {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories added yet"
+        
+        // use Chameleon
+        cell.backgroundColor = UIColor.randomFlat
+        // if no colour, use a blue background
+        cell.backgroundColor = UIColor(hexString: categories?[indexPath.row].colour ?? "1D9BF6")
+        
+        
         
         return cell
     }
@@ -147,6 +158,8 @@ class CategoryViewController: SwipeTableViewController {
             // create new category with 1 x attribute
             let newCategory = Category()
             newCategory.name = textField.text!
+            // create colour from Chameleon
+            newCategory.colour = UIColor.randomFlat.hexValue()
             
             // auto updating Realm container means we no longer need to append - see Properties
             
