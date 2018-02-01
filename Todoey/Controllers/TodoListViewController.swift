@@ -34,14 +34,94 @@ class TodoListViewController: SwipeTableViewController {
     
     var textField = UITextField()
     
+    // if we want to change background of search bar, it needs an outlet
+    @IBOutlet weak var searchBar: UISearchBar!
     
     
     
     // MARK: - View
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         // no dividing lines between cells
         tableView.separatorStyle = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        // Chameleon, set nav bar (and status) tint colour to Category colour
+        // UIColor needs a non-optional string so use optional binding rather than force unwrap
+        //if let colourHex = selectedCategory?.colour {
+            // if navController not nil, set bar colour but navController doesn't exist until viewWillAppear so don't use in viewDidLoad
+            //navigationController?.navigationBar.barTintColor = UIColor(hexString: colourHex)
+            
+            // selectedCat will not be nil at this stage so unwrap to change title to name of category:
+            //title = selectedCategory!.name
+            
+            // guard against navController being nil:
+            //guard let navBar = navigationController?.navigationBar
+                //else {
+                    //fatalError("Navigation controller does not exist.")
+           // }
+            
+            // output is optional UIColor so add another test
+            //if let navBarColour = UIColor(hexString: colourHex) {
+                //navBar.barTintColor = navBarColour
+                
+                // set navBar control colours to contrast with background using Chameleon
+                //navBar.tintColor = ContrastColorOf(UIColor(hexString: colourHex), returnFlat: true)
+                //navBar.tintColor = ContrastColorOf(navBarColour, returnFlat: true)
+                
+                // change title attribs using large option using a dictionary and Chameleon for contrast
+                // change + to default in storybd
+                //navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: ContrastColorOf(navBarColour, returnFlat: true)]
+                
+                
+                // set background colour of search bar to same as navBar
+                //searchBar.barTintColor = UIColor(hexString: colourHex)
+                //searchBar.barTintColor = navBarColour
+            //}
+            
+            
+        //}
+        //navigationController?.navigationBar.barTintColor = UIColor(hexString: selectedCategory?.colour)
+        
+        // use guard instead of if-let as we're not using else statements to reduce if-let pyramid:
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("Navigation controller does not exist.")
+        }
+        
+        guard let colourHex = selectedCategory?.colour
+            else {
+                fatalError()
+        }
+        // use optional chaining
+        title = selectedCategory?.name
+        
+        guard let navBarColour = UIColor(hexString: colourHex) else {
+            fatalError()
+        }
+        
+        navBar.barTintColor = navBarColour
+        
+        navBar.tintColor = ContrastColorOf(navBarColour, returnFlat: true)
+        
+        navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: ContrastColorOf(navBarColour, returnFlat: true)]
+        
+        searchBar.barTintColor = navBarColour
+    }
+    
+    // just before view gets destroyed
+    override func viewWillDisappear(_ animated: Bool) {
+        // guard against hex being wrong/nil
+        guard let originalColour = UIColor(hexString: "1D9BF6")
+            else {
+                fatalError()
+        }
+        // controller will exist at this point, set default color
+        navigationController?.navigationBar.barTintColor = originalColour
+        // also reset controls using Chameleon
+        navigationController?.navigationBar.tintColor = FlatWhite()
+        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor: FlatWhite()]
     }
     
     
